@@ -1,3 +1,4 @@
+// Book Class
 class Book {
   constructor(title, author, isbn) {
     this.title = title;
@@ -6,6 +7,7 @@ class Book {
   }
 }
 
+// UI Class
 class UI {
   addBookToList(book) {
     const list = document.getElementById('book-list');
@@ -55,7 +57,55 @@ class UI {
   }
 }
 
+// Local Storage Class
+class Store {
+  static getBooks() {
+    let books;
+    // Check local storage
+    if (localStorage.getItem('books') === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+
+    return books;
+  }
+
+  static displayBooks() {
+    const books = Store.getBooks();
+
+    books.forEach(book => {
+      const ui = new UI();
+
+      // Add book to UI
+      ui.addBookToList(book);
+    });
+  }
+
+  static addBook(book) {
+    const books = Store.getBooks();
+
+    books.push(book);
+
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+
+  static removeBook(isbn) {
+    const books = Store.getBooks();
+
+    books.forEach((book, index) => {
+      if (book.isbn === isbn) {
+        books.splice(index, 1);
+      }
+    });
+
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+}
+
 // Event listeners
+// DOM Load event
+document.addEventListener('DOMContentLoaded', Store.displayBooks);
 // Event listener for add book
 document.getElementById('book-form').addEventListener('submit', function (e) {
   // Get form values
@@ -77,6 +127,9 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
     // Add book to list
     ui.addBookToList(book);
 
+    // Add to LS
+    Store.addBook(book);
+
     // Show success
     ui.showAlert('Book Added...', 'success');
 
@@ -93,7 +146,11 @@ document.getElementById('book-list').addEventListener('click', function (e) {
   // Instantiate UI 
   const ui = new UI();
 
+  // Delete book
   ui.deleteBook(e.target);
+
+  // Remove from LS
+  Store.removeBook(e.target.parentElement.parentElement.previousElementSibling.textContent);
 
   // Show alert
   ui.showAlert('Book removed...', 'success');
